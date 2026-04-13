@@ -1,0 +1,580 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --dash-bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: rgba(48,200,180,0.18);
+    --border2: rgba(48,200,180,0.08);
+    --teal: #30c8b4;
+    --teal2: #1a8fa0;
+    --blue: #1e7fc4;
+    --blue2: #378add;
+    --text: #e6edf3;
+    --muted: #8b9cb3;
+    --green: #39d353;
+    --amber: #e3a93a;
+    --red: #e05252;
+    --font: 'Inter', 'Segoe UI', sans-serif;
+  }
+  body { background: var(--dash-bg); color: var(--text); font-family: var(--font); font-size: 13px; }
+  .dash-root { display: flex; flex-direction: column; min-height: 100vh; background: var(--dash-bg); }
+
+  /* TOPBAR */
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 0 20px; height: 48px; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .logo { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--teal); letter-spacing: .3px; }
+  .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg,#1a3a2e,#0d2420); border: 1px solid var(--teal); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .top-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .top-center .gw { display: flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
+  .dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .top-right { display: flex; align-items: center; gap: 10px; }
+  .timestamp { font-size: 11px; color: var(--muted); }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,var(--teal2),var(--blue)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; }
+
+  /* LAYOUT */
+  .body-wrap { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 200px; background: var(--panel); border-right: 1px solid var(--border2); flex-shrink: 0; display: flex; flex-direction: column; padding: 12px 0; }
+  .sidebar-section { padding: 6px 14px 4px; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+  .sb-item { display: flex; align-items: center; gap: 9px; padding: 7px 14px; cursor: pointer; border-left: 2px solid transparent; transition: all .15s; font-size: 12px; color: var(--muted); }
+  .sb-item:hover, .sb-item.active { background: rgba(30,200,180,.07); border-left-color: var(--teal); color: var(--text); }
+  .sb-item .sb-icon { width: 20px; height: 20px; border-radius: 4px; background: rgba(48,200,180,.12); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--teal); flex-shrink: 0; }
+  .sb-item .sb-status { margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .sb-item .sb-status.warn { background: var(--amber); }
+  .sb-divider { margin: 8px 14px; border: none; border-top: 1px solid var(--border2); }
+  .mesh-mini { margin: 8px 14px; padding: 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; }
+  .mesh-mini-title { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: .3px; }
+  .mesh-mini svg { width: 100%; }
+
+  /* MAIN */
+  .main-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* SUMMARY CARDS */
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .scard { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; overflow: hidden; }
+  .scard::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: var(--accent-color, var(--teal)); }
+  .scard-label { font-size: 10px; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 6px; }
+  .scard-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+  .scard-unit { font-size: 12px; color: var(--muted); margin-left: 3px; font-weight: 400; }
+  .scard-trend { font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .scard-trend.up { color: var(--green); }
+  .scard-trend.down { color: var(--red); }
+  .scard-trend.ok { color: var(--muted); }
+  .scard-gauge { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
+
+  /* GRID LAYOUT */
+  .mid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mid-row.three { grid-template-columns: 2fr 1fr 1fr; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .panel-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .panel-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; background: rgba(48,200,180,.15); color: var(--teal); }
+  .panel-badge.blue { background: rgba(55,138,221,.15); color: var(--blue2); }
+  .panel-badge.amber { background: rgba(227,169,58,.15); color: var(--amber); }
+
+  /* CHART */
+  .chart-wrap { position: relative; height: 130px; }
+  .chart-canvas { width: 100%; height: 100%; }
+
+  /* GAUGE WIDGET */
+  .gauge-row { display: flex; flex-direction: column; gap: 10px; }
+  .gauge-item { display: flex; align-items: center; gap: 10px; }
+  .gauge-label { font-size: 11px; color: var(--muted); width: 36px; flex-shrink: 0; }
+  .gauge-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
+  .gauge-bar { height: 100%; border-radius: 3px; transition: width .4s; }
+  .gauge-val { font-size: 11px; font-weight: 600; color: var(--text); width: 42px; text-align: right; flex-shrink: 0; }
+
+  /* ALGAE CULTIVATION */
+  .algae-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .bioreactor { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: border-color .15s; }
+  .bioreactor:hover { border-color: var(--teal); }
+  .bioreactor svg { display: block; margin: 0 auto 6px; }
+  .bioreactor-label { font-size: 10px; color: var(--muted); }
+  .bioreactor-val { font-size: 13px; font-weight: 600; color: var(--text); }
+
+  /* DEVICE MESH */
+  .mesh-full { height: 160px; position: relative; }
+
+  /* STATUS TABLE */
+  .status-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .status-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border2); }
+  .status-table td { padding: 5px 8px; border-bottom: 1px solid var(--border2); color: var(--text); }
+  .status-table tr:last-child td { border-bottom: none; }
+  .st-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-block; }
+  .st-badge.ok { background: rgba(57,211,83,.15); color: var(--green); }
+  .st-badge.warn { background: rgba(227,169,58,.15); color: var(--amber); }
+
+  /* MOBILE SECTION */
+  .mobile-section { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border2); }
+  .mobile-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+  .mobile-cards { display: grid; grid-template-columns: repeat(2, 180px); gap: 10px; }
+  .mobile-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; width: 180px; }
+  .mc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 11px; color: var(--muted); }
+  .mc-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .mc-value { font-size: 22px; font-weight: 700; color: var(--text); }
+  .mc-unit { font-size: 11px; color: var(--muted); }
+  .mc-chart { height: 40px; margin-top: 8px; position: relative; }
+</style>
+
+<div class="dash-root">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#30c8b4" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="#30c8b4" opacity=".6"/><path d="M8 3v2M8 11v2M3 8h2M11 8h2" stroke="#30c8b4" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      AlgaePilot
+    </div>
+    <div class="top-center">
+      <div class="gw">
+        <div class="dot"></div>
+        <span style="color:var(--text);font-weight:500">Gateway LPS8v2</span>
+        <span style="color:var(--green);font-weight:600">Online</span>
+      </div>
+      <div class="gw" style="margin-left:6px">
+        <div class="dot amber"></div>
+        <span>Datacake Cloud</span>
+        <span style="color:var(--amber)">Syncing</span>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="timestamp" id="ts">—</div>
+      <div style="width:1px;height:18px;background:var(--border);"></div>
+      <div class="avatar">AP</div>
+    </div>
+  </div>
+
+  <div class="body-wrap">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">Devices</div>
+      <div class="sb-item active">
+        <div class="sb-icon">RS</div>
+        <span>RS485-LN</span>
+        <div class="sb-status"></div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-icon">SD</div>
+        <span>SDI12-LS</span>
+        <div class="sb-status"></div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-icon">PH</div>
+        <span>pH Probe</span>
+        <div class="sb-status warn"></div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-icon">DO</div>
+        <span>DO Sensor</span>
+        <div class="sb-status"></div>
+      </div>
+      <hr class="sb-divider">
+      <div class="sidebar-section">Reactors</div>
+      <div class="sb-item active">
+        <div class="sb-icon">R1</div>
+        <span>Reactor A</span>
+        <div class="sb-status"></div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-icon">R2</div>
+        <span>Reactor B</span>
+        <div class="sb-status"></div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-icon">R3</div>
+        <span>Reactor C</span>
+        <div class="sb-status warn"></div>
+      </div>
+      <hr class="sb-divider">
+      <!-- Mini mesh -->
+      <div class="mesh-mini">
+        <div class="mesh-mini-title">Device mesh</div>
+        <svg viewBox="0 0 160 90" height="80">
+          <defs>
+            <marker id="ma" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L6 4L1 7" fill="none" stroke="#30c8b4" stroke-width="1.2"/></marker>
+          </defs>
+          <!-- GW -->
+          <rect x="60" y="4" width="40" height="18" rx="4" fill="rgba(48,200,180,.2)" stroke="#30c8b4" stroke-width="1"/>
+          <text x="80" y="14" text-anchor="middle" font-size="8" fill="#30c8b4" font-family="monospace">LPS8v2</text>
+          <!-- Devices -->
+          <rect x="4" y="54" width="44" height="16" rx="3" fill="rgba(30,127,196,.2)" stroke="#1e7fc4" stroke-width="0.8"/>
+          <text x="26" y="63" text-anchor="middle" font-size="7.5" fill="#90c4e8" font-family="monospace">RS485-LN</text>
+          <rect x="56" y="54" width="44" height="16" rx="3" fill="rgba(30,127,196,.2)" stroke="#1e7fc4" stroke-width="0.8"/>
+          <text x="78" y="63" text-anchor="middle" font-size="7.5" fill="#90c4e8" font-family="monospace">SDI12-LS</text>
+          <rect x="110" y="54" width="44" height="16" rx="3" fill="rgba(227,169,58,.15)" stroke="#e3a93a" stroke-width="0.8"/>
+          <text x="132" y="63" text-anchor="middle" font-size="7.5" fill="#e3a93a" font-family="monospace">pH Probe</text>
+          <!-- Lines -->
+          <line x1="80" y1="22" x2="26" y2="54" stroke="#30c8b4" stroke-width="0.8" stroke-dasharray="3 2" opacity=".7"/>
+          <line x1="80" y1="22" x2="78" y2="54" stroke="#30c8b4" stroke-width="0.8" stroke-dasharray="3 2" opacity=".7"/>
+          <line x1="80" y1="22" x2="132" y2="54" stroke="#e3a93a" stroke-width="0.8" stroke-dasharray="3 2" opacity=".7"/>
+          <!-- Sensors below devices -->
+          <circle cx="26" cy="82" r="5" fill="rgba(55,138,221,.3)" stroke="#378add" stroke-width="0.8"/>
+          <circle cx="78" cy="82" r="5" fill="rgba(55,138,221,.3)" stroke="#378add" stroke-width="0.8"/>
+          <text x="26" y="85" text-anchor="middle" font-size="5.5" fill="#90c4e8">T°</text>
+          <text x="78" y="85" text-anchor="middle" font-size="5.5" fill="#90c4e8">DO</text>
+          <line x1="26" y1="70" x2="26" y2="77" stroke="#378add" stroke-width="0.8"/>
+          <line x1="78" y1="70" x2="78" y2="77" stroke="#378add" stroke-width="0.8"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+
+      <!-- SUMMARY CARDS -->
+      <div class="summary-row">
+        <div class="scard" style="--accent-color:#30c8b4">
+          <div class="scard-label">Water Temp</div>
+          <div><span class="scard-value">24.5</span><span class="scard-unit">°C</span></div>
+          <div class="scard-trend ok">→ Optimal range</div>
+          <div class="scard-gauge">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="17" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
+              <circle cx="22" cy="22" r="17" fill="none" stroke="#30c8b4" stroke-width="5" stroke-dasharray="81 106" stroke-dashoffset="-13" stroke-linecap="round" opacity=".9"/>
+              <text x="22" y="25" text-anchor="middle" font-size="9" fill="#30c8b4" font-family="monospace">68%</text>
+            </svg>
+          </div>
+        </div>
+        <div class="scard" style="--accent-color:#1e7fc4">
+          <div class="scard-label">Turbidity</div>
+          <div><span class="scard-value">12.3</span><span class="scard-unit">NTU</span></div>
+          <div class="scard-trend up">↑ +1.2 NTU last hr</div>
+          <div class="scard-gauge">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="17" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
+              <circle cx="22" cy="22" r="17" fill="none" stroke="#1e7fc4" stroke-width="5" stroke-dasharray="45 106" stroke-dashoffset="-13" stroke-linecap="round" opacity=".9"/>
+              <text x="22" y="25" text-anchor="middle" font-size="9" fill="#1e7fc4" font-family="monospace">42%</text>
+            </svg>
+          </div>
+        </div>
+        <div class="scard" style="--accent-color:#39d353">
+          <div class="scard-label">Dissolved O₂</div>
+          <div><span class="scard-value">7.8</span><span class="scard-unit">mg/L</span></div>
+          <div class="scard-trend ok">→ Stable</div>
+          <div class="scard-gauge">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="17" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
+              <circle cx="22" cy="22" r="17" fill="none" stroke="#39d353" stroke-width="5" stroke-dasharray="72 106" stroke-dashoffset="-13" stroke-linecap="round" opacity=".9"/>
+              <text x="22" y="25" text-anchor="middle" font-size="9" fill="#39d353" font-family="monospace">68%</text>
+            </svg>
+          </div>
+        </div>
+        <div class="scard" style="--accent-color:#e3a93a">
+          <div class="scard-label">pH Level</div>
+          <div><span class="scard-value">8.2</span><span class="scard-unit">pH</span></div>
+          <div class="scard-trend down">↓ Slight drift</div>
+          <div class="scard-gauge">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="17" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
+              <circle cx="22" cy="22" r="17" fill="none" stroke="#e3a93a" stroke-width="5" stroke-dasharray="88 106" stroke-dashoffset="-13" stroke-linecap="round" opacity=".9"/>
+              <text x="22" y="25" text-anchor="middle" font-size="9" fill="#e3a93a" font-family="monospace">83%</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW -->
+      <div class="mid-row" style="grid-template-columns: 3fr 1fr">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">24-hour trends</span>
+            <div style="display:flex;gap:6px">
+              <span class="panel-badge">Temp</span>
+              <span class="panel-badge blue">DO</span>
+              <span class="panel-badge amber">pH</span>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="trendChart" class="chart-canvas"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Sensor health</span>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-item">
+              <span class="gauge-label">Temp</span>
+              <div class="gauge-bar-wrap"><div class="gauge-bar" style="width:76%;background:var(--teal)"></div></div>
+              <span class="gauge-val">24.5°</span>
+            </div>
+            <div class="gauge-item">
+              <span class="gauge-label">NTU</span>
+              <div class="gauge-bar-wrap"><div class="gauge-bar" style="width:41%;background:var(--blue2)"></div></div>
+              <span class="gauge-val">12.3</span>
+            </div>
+            <div class="gauge-item">
+              <span class="gauge-label">DO</span>
+              <div class="gauge-bar-wrap"><div class="gauge-bar" style="width:68%;background:var(--green)"></div></div>
+              <span class="gauge-val">7.8</span>
+            </div>
+            <div class="gauge-item">
+              <span class="gauge-label">pH</span>
+              <div class="gauge-bar-wrap"><div class="gauge-bar" style="width:83%;background:var(--amber)"></div></div>
+              <span class="gauge-val">8.2</span>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border2);margin:10px 0">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Device status</div>
+          <table class="status-table">
+            <tr><td>RS485-LN</td><td><span class="st-badge ok">Online</span></td></tr>
+            <tr><td>SDI12-LS</td><td><span class="st-badge ok">Online</span></td></tr>
+            <tr><td>pH Probe</td><td><span class="st-badge warn">Drift</span></td></tr>
+            <tr><td>DO Sensor</td><td><span class="st-badge ok">Online</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- ALGAE BIOREACTORS + TURBIDITY CHART -->
+      <div class="mid-row" style="grid-template-columns: 1fr 2fr">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Bioreactors</span>
+            <span class="panel-badge">Live</span>
+          </div>
+          <div class="algae-grid">
+            <!-- Reactor A -->
+            <div class="bioreactor">
+              <svg width="44" height="54" viewBox="0 0 44 54">
+                <rect x="8" y="4" width="28" height="40" rx="6" fill="rgba(26,143,160,.25)" stroke="#1a8fa0" stroke-width="1"/>
+                <!-- algae fill level -->
+                <rect x="9" y="24" width="26" height="19" rx="0 0 5 5" fill="rgba(48,200,180,.4)" clip-path="url(#rc)"/>
+                <clipPath id="rc"><rect x="8" y="4" width="28" height="40" rx="6"/></clipPath>
+                <!-- bubble -->
+                <circle cx="18" cy="30" r="2" fill="rgba(48,200,180,.5)"/>
+                <circle cx="26" cy="26" r="1.5" fill="rgba(48,200,180,.4)"/>
+                <circle cx="22" cy="33" r="1" fill="rgba(48,200,180,.3)"/>
+                <!-- label -->
+                <text x="22" y="50" text-anchor="middle" font-size="8" fill="#30c8b4" font-family="monospace">A</text>
+              </svg>
+              <div class="bioreactor-label">Density</div>
+              <div class="bioreactor-val" style="color:var(--teal)">0.82g/L</div>
+            </div>
+            <!-- Reactor B -->
+            <div class="bioreactor">
+              <svg width="44" height="54" viewBox="0 0 44 54">
+                <rect x="8" y="4" width="28" height="40" rx="6" fill="rgba(26,143,160,.25)" stroke="#1a8fa0" stroke-width="1"/>
+                <rect x="9" y="18" width="26" height="25" rx="0 0 5 5" fill="rgba(48,200,180,.35)" clip-path="url(#rb)"/>
+                <clipPath id="rb"><rect x="8" y="4" width="28" height="40" rx="6"/></clipPath>
+                <circle cx="20" cy="28" r="1.5" fill="rgba(48,200,180,.5)"/>
+                <circle cx="27" cy="32" r="2" fill="rgba(48,200,180,.4)"/>
+                <text x="22" y="50" text-anchor="middle" font-size="8" fill="#30c8b4" font-family="monospace">B</text>
+              </svg>
+              <div class="bioreactor-label">Density</div>
+              <div class="bioreactor-val" style="color:var(--teal)">1.1g/L</div>
+            </div>
+            <!-- Reactor C (low) -->
+            <div class="bioreactor" style="border-color:var(--amber)">
+              <svg width="44" height="54" viewBox="0 0 44 54">
+                <rect x="8" y="4" width="28" height="40" rx="6" fill="rgba(227,169,58,.15)" stroke="#e3a93a" stroke-width="1"/>
+                <rect x="9" y="38" width="26" height="5" rx="0 0 5 5" fill="rgba(227,169,58,.4)" clip-path="url(#rca)"/>
+                <clipPath id="rca"><rect x="8" y="4" width="28" height="40" rx="6"/></clipPath>
+                <text x="22" y="50" text-anchor="middle" font-size="8" fill="#e3a93a" font-family="monospace">C</text>
+              </svg>
+              <div class="bioreactor-label">Density</div>
+              <div class="bioreactor-val" style="color:var(--amber)">0.21g/L</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:10px;color:var(--muted);padding:6px 8px;background:rgba(227,169,58,.08);border:1px solid rgba(227,169,58,.2);border-radius:6px">
+            ⚠ Reactor C: low biomass — check CO₂ supply
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Turbidity &amp; DO — 24h</span>
+            <div style="display:flex;gap:6px">
+              <span class="panel-badge blue">Turbidity (NTU)</span>
+              <span class="panel-badge">DO (mg/L)</span>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:150px">
+            <canvas id="turbChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEVICE MESH FULL + pH CHART -->
+      <div class="mid-row">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Device mesh topology</span>
+            <span class="panel-badge blue">LoRaWAN</span>
+          </div>
+          <div class="mesh-full">
+            <svg width="100%" viewBox="0 0 540 150" style="overflow:visible">
+              <defs>
+                <marker id="mb" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L6 4L1 7" fill="none" stroke="#30c8b4" stroke-width="1.2" stroke-linecap="round"/></marker>
+                <marker id="mc" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L6 4L1 7" fill="none" stroke="#e3a93a" stroke-width="1.2" stroke-linecap="round"/></marker>
+              </defs>
+
+              <!-- CLOUD -->
+              <rect x="220" y="4" width="100" height="30" rx="6" fill="rgba(30,127,196,.25)" stroke="#1e7fc4" stroke-width="1"/>
+              <text x="270" y="16" text-anchor="middle" font-size="8" fill="#90c4e8" font-family="monospace" font-weight="600">DATACAKE</text>
+              <text x="270" y="27" text-anchor="middle" font-size="7" fill="#5a8ab8">Cloud Platform</text>
+
+              <!-- GW -->
+              <rect x="210" y="56" width="120" height="32" rx="6" fill="rgba(48,200,180,.2)" stroke="#30c8b4" stroke-width="1.5"/>
+              <text x="270" y="69" text-anchor="middle" font-size="8.5" fill="#30c8b4" font-family="monospace" font-weight="700">Gateway LPS8v2</text>
+              <circle cx="295" cy="76" r="3" fill="var(--green)"/>
+              <text x="270" y="80" text-anchor="middle" font-size="7" fill="#5aaa70">Online • 3 devices</text>
+
+              <!-- Line GW-cloud -->
+              <line x1="270" y1="56" x2="270" y2="34" stroke="#1e7fc4" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#mb)"/>
+
+              <!-- RS485-LN -->
+              <rect x="60" y="106" width="90" height="30" rx="5" fill="rgba(55,138,221,.18)" stroke="#378add" stroke-width="1"/>
+              <text x="105" y="118" text-anchor="middle" font-size="8" fill="#90c4e8" font-family="monospace">RS485-LN</text>
+              <text x="105" y="129" text-anchor="middle" font-size="7" fill="#5a8ab8">Temp · NTU</text>
+              <line x1="210" y1="78" x2="150" y2="106" stroke="#30c8b4" stroke-width="1" stroke-dasharray="3 2" opacity=".8" marker-end="url(#mb)"/>
+
+              <!-- SDI12-LS -->
+              <rect x="215" y="106" width="90" height="30" rx="5" fill="rgba(55,138,221,.18)" stroke="#378add" stroke-width="1"/>
+              <text x="260" y="118" text-anchor="middle" font-size="8" fill="#90c4e8" font-family="monospace">SDI12-LS</text>
+              <text x="260" y="129" text-anchor="middle" font-size="7" fill="#5a8ab8">DO · Salinity</text>
+              <line x1="260" y1="88" x2="260" y2="106" stroke="#30c8b4" stroke-width="1" stroke-dasharray="3 2" opacity=".8" marker-end="url(#mb)"/>
+
+              <!-- pH probe -->
+              <rect x="372" y="106" width="90" height="30" rx="5" fill="rgba(227,169,58,.12)" stroke="#e3a93a" stroke-width="1"/>
+              <text x="417" y="118" text-anchor="middle" font-size="8" fill="#e3a93a" font-family="monospace">pH Probe</text>
+              <text x="417" y="129" text-anchor="middle" font-size="7" fill="#a07810">pH · drift!</text>
+              <line x1="330" y1="78" x2="372" y2="106" stroke="#e3a93a" stroke-width="1" stroke-dasharray="3 2" opacity=".8" marker-end="url(#mc)"/>
+
+              <!-- RSSI labels -->
+              <text x="168" y="100" font-size="7" fill="#30c8b4" opacity=".7" font-family="monospace">-82dBm</text>
+              <text x="260" y="102" font-size="7" fill="#30c8b4" opacity=".7" text-anchor="middle" font-family="monospace">-75dBm</text>
+              <text x="360" y="100" font-size="7" fill="#e3a93a" opacity=".7" font-family="monospace">-91dBm</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">pH trend — 24h</span>
+            <span class="panel-badge amber">pH</span>
+          </div>
+          <div class="chart-wrap" style="height:150px">
+            <canvas id="phChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE PREVIEW -->
+      <div class="mobile-section">
+        <div class="mobile-label">Mobile view — key widgets</div>
+        <div class="mobile-cards">
+          <div class="mobile-card">
+            <div class="mc-header"><span>Water Temp</span><div class="mc-dot"></div></div>
+            <div><span class="mc-value">24.5</span><span class="mc-unit"> °C</span></div>
+            <div class="mc-chart"><canvas id="mChart1"></canvas></div>
+          </div>
+          <div class="mobile-card">
+            <div class="mc-header"><span>pH Level</span><div class="mc-dot" style="background:var(--amber)"></div></div>
+            <div><span class="mc-value" style="color:var(--amber)">8.2</span><span class="mc-unit"> pH</span></div>
+            <div class="mc-chart"><canvas id="mChart2"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-area -->
+  </div><!-- /body-wrap -->
+</div><!-- /dash-root -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// timestamp
+function tick() {
+  const now = new Date();
+  document.getElementById('ts').textContent = now.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' UTC';
+}
+tick(); setInterval(tick, 1000);
+
+// generate sparkline data
+function genData(base, variance, n) {
+  const arr = [];
+  let v = base;
+  for(let i=0;i<n;i++){ v += (Math.random()-.5)*variance*2; v=Math.max(base-variance*3,Math.min(base+variance*3,v)); arr.push(parseFloat(v.toFixed(2))); }
+  return arr;
+}
+
+const hrs = Array.from({length:24},(_,i)=>i===0?'00:00':i===6?'06:00':i===12?'12:00':i===18?'18:00':i===23?'now':'');
+const tempData = genData(24.5,0.4,24);
+const doData = genData(7.8,0.3,24);
+const turbData = genData(12.3,1.2,24);
+const phData = genData(8.2,0.06,24);
+
+// MAIN TREND CHART
+new Chart(document.getElementById('trendChart'), {
+  type:'line',
+  data:{
+    labels: hrs,
+    datasets:[
+      {label:'Temp °C',data:tempData,borderColor:'#30c8b4',backgroundColor:'rgba(48,200,180,.08)',pointRadius:0,borderWidth:1.5,tension:.4,fill:true},
+      {label:'DO mg/L',data:doData,borderColor:'#39d353',backgroundColor:'rgba(57,211,83,.05)',pointRadius:0,borderWidth:1.5,tension:.4,fill:true,borderDash:[4,2]},
+      {label:'pH',data:phData.map(v=>v*2.5),borderColor:'#e3a93a',backgroundColor:'rgba(227,169,58,.05)',pointRadius:0,borderWidth:1.5,tension:.4,fill:false,borderDash:[2,3]}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#1c2330',titleColor:'#8b9cb3',bodyColor:'#e6edf3',borderColor:'rgba(48,200,180,.3)',borderWidth:1}},
+    scales:{
+      x:{ticks:{color:'#5a6880',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+      y:{ticks:{color:'#5a6880',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}
+    }
+  }
+});
+
+// TURBIDITY + DO CHART
+new Chart(document.getElementById('turbChart'), {
+  type:'line',
+  data:{
+    labels: hrs,
+    datasets:[
+      {label:'Turbidity NTU',data:turbData,borderColor:'#378add',backgroundColor:'rgba(55,138,221,.1)',pointRadius:0,borderWidth:1.5,tension:.4,fill:true},
+      {label:'DO mg/L',data:doData,borderColor:'#30c8b4',backgroundColor:'rgba(48,200,180,.07)',pointRadius:0,borderWidth:1.5,tension:.4,fill:true}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#1c2330',titleColor:'#8b9cb3',bodyColor:'#e6edf3',borderColor:'rgba(55,138,221,.3)',borderWidth:1}},
+    scales:{
+      x:{ticks:{color:'#5a6880',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+      y:{ticks:{color:'#5a6880',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}
+    }
+  }
+});
+
+// pH CHART
+new Chart(document.getElementById('phChart'), {
+  type:'line',
+  data:{
+    labels: hrs,
+    datasets:[
+      {label:'pH',data:phData,borderColor:'#e3a93a',backgroundColor:'rgba(227,169,58,.1)',pointRadius:0,borderWidth:2,tension:.4,fill:true},
+      {label:'Target',data:Array(24).fill(8.0),borderColor:'rgba(227,169,58,.3)',pointRadius:0,borderWidth:1,tension:0,fill:false,borderDash:[4,4]}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#1c2330',titleColor:'#8b9cb3',bodyColor:'#e6edf3',borderColor:'rgba(227,169,58,.3)',borderWidth:1}},
+    scales:{
+      x:{ticks:{color:'#5a6880',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+      y:{ticks:{color:'#5a6880',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'},min:7.5,max:8.8}
+    }
+  }
+});
+
+// MOBILE MINI CHARTS
+const miniOpts = (c)=>({
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{enabled:false}},
+  scales:{x:{display:false},y:{display:false}},
+  elements:{point:{radius:0},line:{borderWidth:1.5,tension:.4}}
+});
+new Chart(document.getElementById('mChart1'),{type:'line',data:{labels:hrs,datasets:[{data:tempData,borderColor:'#30c8b4',backgroundColor:'rgba(48,200,180,.15)',fill:true}]},options:miniOpts()});
+new Chart(document.getElementById('mChart2'),{type:'line',data:{labels:hrs,datasets:[{data:phData,borderColor:'#e3a93a',backgroundColor:'rgba(227,169,58,.15)',fill:true}]},options:miniOpts()});
+</script>
